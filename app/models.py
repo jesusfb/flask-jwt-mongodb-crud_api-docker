@@ -1,4 +1,5 @@
-from app import db
+from app import mongo
+from bson import ObjectId
 
 class Item:
     def __init__(self, name, description):
@@ -19,3 +20,60 @@ class Item:
     @classmethod
     def delete_item(cls, name):
         db.items.delete_one({'name': name})
+
+class Company:
+    def __init__(self, name, website, linkedin, country, description):
+        self.name = name
+        self.website = website
+        self.linkedin = linkedin
+        self.country = country
+        self.description = description
+
+    def save_to_db(self):
+        mongo.db.companies.insert_one({
+            'name': self.name,
+            'website': self.website,
+            'linkedin': self.linkedin,
+            'country': self.country,
+            'description': self.description
+        })
+
+    @classmethod
+    def find_all(cls):
+        companies = list(mongo.db.companies.find())
+        for company in companies:
+            company['_id'] = str(company['_id'])  # Convert ObjectId to string
+        return companies
+
+    @classmethod
+    def find_by_id(cls, company_id):
+        try:
+            company_id = ObjectId(company_id)
+        except:
+            return None
+        company = mongo.db.companies.find_one({'_id': company_id})
+        if company:
+            company['_id'] = str(company['_id'])  # Convert ObjectId to string
+        return company
+
+    @classmethod
+    def update_company(cls, company_id, new_data):
+        mongo.db.companies.update_one({'_id': ObjectId(company_id)}, {'$set': {
+            'name': new_data.get('name'),
+            'website': new_data.get('website'),
+            'linkedin': new_data.get('linkedin'),
+            'country': new_data.get('country'),
+            'description': new_data.get('description')
+        }})
+
+    @classmethod
+    def delete_company(cls, company_id):
+        mongo.db.companies.delete_one({'_id': ObjectId(company_id)})
+
+    @classmethod
+    def find_by_website(cls, website):
+        return mongo.db.companies.find_one({'website': website})
+
+    @classmethod
+    def find_by_linkedin(cls, linkedin):
+        return mongo.db.companies.find_one({'linkedin': linkedin})
