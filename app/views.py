@@ -36,10 +36,13 @@ class Login(Resource):
         user = mongo.db.users.find_one({'email': email})
         if not user or not check_password_hash(user['password'], password):
             return {'message': 'Invalid credentials!'}, 401
-
+        # Create the access token
         access_token = create_access_token(identity=email, expires_delta=timedelta(minutes=30))
         logging.info(f"Access token generated for user: {email}.\nAccess token: {access_token}")
-        return {'access_token': access_token}, 200
+        # Append 'Bearer ' prefix to the access token
+        access_token_with_prefix = 'Bearer ' + access_token
+
+        return {'access_token': access_token_with_prefix}, 200
 
 class Logout(Resource):
     @jwt_required()
