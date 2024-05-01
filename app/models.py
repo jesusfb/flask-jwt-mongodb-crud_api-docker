@@ -22,10 +22,11 @@ class Item:
         db.items.delete_one({'name': name})
 
 class Company:
-    def __init__(self, name, website, linkedin, country, description):
+    def __init__(self, name, website, linkedin, x, country, description):
         self.name = name
         self.website = website
         self.linkedin = linkedin
+        self.x = x
         self.country = country
         self.description = description
 
@@ -34,6 +35,7 @@ class Company:
             'name': self.name,
             'website': self.website,
             'linkedin': self.linkedin,
+            'x': self.x,
             'country': self.country,
             'description': self.description
         })
@@ -62,6 +64,7 @@ class Company:
             'name': new_data.get('name'),
             'website': new_data.get('website'),
             'linkedin': new_data.get('linkedin'),
+            'x': new_data.get('x'),
             'country': new_data.get('country'),
             'description': new_data.get('description')
         }})
@@ -77,3 +80,7 @@ class Company:
     @classmethod
     def find_by_linkedin(cls, linkedin):
         return mongo.db.companies.find_one({'linkedin': linkedin})
+
+    @classmethod
+    def find_by_x(cls, x):
+        return mongo.db.companies.find_one({'x': x})

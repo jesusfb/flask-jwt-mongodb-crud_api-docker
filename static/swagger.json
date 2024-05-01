@@ -101,21 +101,6 @@
                 }
             }
         },
-        "/api/logout": {
-            "get": {
-                "summary": "Logout",
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Logged out successfully!"
-                    }
-                }
-            }
-        },
         "/api/companies": {
             "post": {
                 "summary": "Create a new company",
@@ -136,11 +121,15 @@
                                     },
                                     "website": {
                                         "type": "string",
-                                        "format": "uri"
+                                        "format": "string"
                                     },
                                     "linkedin": {
                                         "type": "string",
-                                        "format": "uri"
+                                        "format": "string"
+                                    },
+                                    "x": {
+                                        "type": "string",
+                                        "format": "string"
                                     },
                                     "country": {
                                         "type": "string"
@@ -153,6 +142,7 @@
                                     "name",
                                     "website",
                                     "linkedin",
+                                    "x",
                                     "country",
                                     "description"
                                 ]
@@ -165,7 +155,7 @@
                         "description": "Company created successfully!"
                     },
                     "400": {
-                        "description": "A company with the same website or LinkedIn already exists!"
+                        "description": "A company with the same website or LinkedIn or X already exists!"
                     }
                 }
             },
@@ -256,10 +246,14 @@
                                     },
                                     "website": {
                                         "type": "string",
-                                        "format": "uri"
+                                        "format": "string"
                                     },
                                     "linkedin": {
                                         "type": "string"
+                                    },
+                                    "x": {
+                                        "type": "string",
+                                        "format": "string"
                                     },
                                     "country": {
                                         "type": "string"
@@ -298,6 +292,58 @@
                 "responses": {
                     "200": {
                         "description": "Company deleted successfully!"
+                    }
+                }
+            }
+        },
+        "/api/upload": {
+            "post": {
+                "summary": "Upload CSV",
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "File uploaded successfully"
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "get": {
+                "summary": "Logout",
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Logged out successfully!"
                     }
                 }
             }
@@ -346,11 +392,15 @@
                     },
                     "website": {
                         "type": "string",
-                        "format": "uri"
+                        "format": "string"
                     },
                     "linkedin": {
                         "type": "string",
-                        "format": "uri"
+                        "format": "string"
+                    },
+                    "x": {
+                        "type": "string",
+                        "format": "string"
                     },
                     "country": {
                         "type": "string",

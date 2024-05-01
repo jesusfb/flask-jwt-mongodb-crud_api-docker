@@ -1,10 +1,13 @@
+import os
 import logging
 from datetime import timedelta
 
-from flask import Blueprint, request
+from flask import Blueprint, request, current_app
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_restful import Resource, Api
+import pandas as pd
+
 from app import mongo, jwt
 from app.models import Company
 
@@ -69,6 +72,7 @@ class CompaniesResource(Resource):
         name = data.get('name')
         website = data.get('website')
         linkedin = data.get('linkedin')
+        x = data.get('x')
         country = data.get('country')
         description = data.get('description')
 
@@ -80,7 +84,11 @@ class CompaniesResource(Resource):
         if existing_company_with_linkedin:
             return {'message': 'A company with the same LinkedIn already exists!'}, 400
 
-        company = Company(name, website, linkedin, country, description)
+        existing_company_with_x = Company.find_by_x(x)
+        if existing_company_with_x:
+            return {'message': 'A company with the same X already exists!'}, 400
+
+        company = Company(name, website, linkedin, x, country, description)
         company.save_to_db()
 
         return {'message': 'Company created successfully!'}, 201
@@ -103,6 +111,7 @@ class CompanyResource(Resource):
             'name': data.get('name'),
             'website': data.get('website'),
             'linkedin': data.get('linkedin'),
+            'x': data.get('x'),
             'country': data.get('country'),
             'description': data.get('description')
         }
@@ -113,8 +122,64 @@ class CompanyResource(Resource):
         Company.delete_company(company_id)
         return {'message': 'Company deleted succesfully!'}, 200
 
+class UploadCompany(Resource):
+    @jwt_required()
+    def post(self):
+        # Check if a file is included in the request
+        if 'file' not in request.files:
+            return {'message': 'No file uploaded'}, 400
+
+        file = request.files['file']
+
+        # Check if the file is a CSV file
+        if file.filename == '':
+            return {'message': 'No file selected'}, 400
+        if not file.filename.endswith('.csv'):
+            return {'message': 'File must be a CSV file'}, 400
+        
+        # Log the name of the uploaded file
+        file_name = file.filename
+        current_app.logger.info(f"Uploading CSV file: {file_name}")
+
+        # Read the CSV file into a Pandas DataFrame
+        try:
+            df = pd.read_csv(file)
+
+            # Iterate over each row in the DataFrame
+            for index, row in df.iterrows():
+                name = row['name']
+                website = row['website']
+                linkedin = row['linkedin']
+                x = row['x']
+                country = row['country']
+                description = row['description']
+
+                # Check for existing companies
+                existing_company_with_website = Company.find_by_website(website)
+                if existing_company_with_website:
+                    continue  # Skip adding duplicate companies
+
+                existing_company_with_linkedin = Company.find_by_linkedin(linkedin)
+                if existing_company_with_linkedin:
+                    continue  # Skip adding duplicate companies
+
+                existing_company_with_x = Company.find_by_x(x)
+                if existing_company_with_x:
+                    continue  # Skip adding duplicate companies
+
+                # Add the company to the database
+                company = Company(name, website, linkedin, x, country, description)
+                company.save_to_db()
+
+            return {'message': 'Companies added successfully'}, 201
+
+        except Exception as e:
+            current_app.logger.error(f"Error processing file: {e}")
+            return {'message': 'Error processing file'}, 500
+
 api.add_resource(Register, '/register')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
 api.add_resource(CompaniesResource, '/companies')
 api.add_resource(CompanyResource, '/companies/<company_id>')
+api.add_resource(UploadCompany, '/upload')
