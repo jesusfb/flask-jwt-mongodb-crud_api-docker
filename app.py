@@ -13,7 +13,7 @@ def create_app(env_name):
 
     app.register_blueprint(api_bp, url_prefix='/api')
 
-     # Swagger UI setup
+    # Swagger UI setup
     SWAGGER_URL = '/api/docs'
     API_URL = '/static/swagger.json'
 

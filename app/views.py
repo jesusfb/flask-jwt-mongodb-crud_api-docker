@@ -2,10 +2,10 @@ import logging
 from datetime import timedelta
 
 from flask import Blueprint, request
-from flask_jwt_extended import create_access_token, jwt_required
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_restful import Resource, Api
-from app import mongo
+from app import mongo, jwt
 from app.models import Company
 
 api_bp = Blueprint('api', __name__)
@@ -48,7 +48,19 @@ class Logout(Resource):
     @jwt_required()
     def get(self):
         # Perform logout actions if needed
+        current_user = get_jwt_identity()
+        jti = get_jwt()['jti']
+        
+        # Add token to the list of revoked tokens
+        mongo.db.revoked_tokens.insert_one({'jti': jti, 'user': current_user})
+
         return {'message': 'Logged out successfully!'}, 200
+
+# Add token revocation loader
+@jwt.token_in_blocklist_loader
+def check_if_token_in_blocklist(jwt_header, jwt_payload):
+    jti = jwt_payload['jti']
+    return mongo.db.revoked_tokens.find_one({'jti': jti}) is not None
 
 class CompaniesResource(Resource):
     @jwt_required()
