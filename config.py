@@ -8,7 +8,7 @@ class Config(object):
     DEBUG = False
     TESTING = False
     JWT_SECRET_KEY = 'Library_jwtPrivateKey'
-    MONGO_URI = f"mongodb+srv://{os.getenv('DB_USERNAME')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_CLUSTER')}/{os.getenv('DB_DATABASE')}"
+    MONGO_URI = f"mongodb+srv://jesusfb:Dove3229-@cluster0.yx9sjqo.mongodb.net/crudflask"
     # Set expiration time to 30 minutes
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=30)
 
